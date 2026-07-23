@@ -1,7 +1,7 @@
 const logger = {
-  info: (...args) => console.log(`[${new Date().toISOString()}] [INFO]`, ...args),
-  warn: (...args) => console.warn(`[${new Date().toISOString()}] [WARN]`, ...args),
-  error: (...args) => console.error(`[${new Date().toISOString()}] [ERROR]`, ...args),
+  info: (msg) => console.log(`[INFO] ${new Date().toISOString()} - ${msg}`),
+  warn: (msg) => console.warn(`[WARN] ${new Date().toISOString()} - ${msg}`),
+  error: (msg) => console.error(`[ERROR] ${new Date().toISOString()} - ${msg}`),
 };
 
 module.exports = logger;

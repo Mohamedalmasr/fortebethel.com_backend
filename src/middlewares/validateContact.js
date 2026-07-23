@@ -3,32 +3,39 @@ const { body, validationResult } = require('express-validator');
 const validateContact = [
   body('name')
     .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Name must be between 2 and 100 characters'),
+    .escape()
+    .notEmpty().withMessage('Name is required')
+    .isLength({ min: 2, max: 100 }).withMessage('Name must be 2–100 characters'),
   body('email')
     .trim()
-    .isEmail()
-    .withMessage('Please provide a valid email'),
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Must be a valid email')
+    .normalizeEmail(),
   body('phone')
     .trim()
-    .isLength({ min: 7, max: 20 })
-    .matches(/^[+\d\s\-()]+$/)
-    .withMessage('Phone must be between 7 and 20 characters (numbers only)'),
+    .escape()
+    .notEmpty().withMessage('Phone is required')
+    .matches(/^[\d\s\-\+\(\)\.]{7,20}$/).withMessage('Must be a valid phone number'),
   body('message')
     .trim()
-    .isLength({ min: 5, max: 2000 })
-    .withMessage('Message must be between 5 and 2000 characters'),
+    .escape()
+    .notEmpty().withMessage('Message is required')
+    .isLength({ min: 5, max: 2000 }).withMessage('Message must be 5–2000 characters'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      const fieldErrors = errors.array().map((e) => ({
+        field: e.path,
+        message: e.msg,
+      }));
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array().map((e) => ({ field: e.path, message: e.msg })),
+        errors: fieldErrors,
       });
     }
     next();
   },
 ];
 
-module.exports = validateContact;
+module.exports = { validateContact };

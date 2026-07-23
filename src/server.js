@@ -1,37 +1,35 @@
-require('./config/env');
-
 const app = require('./app');
-const logger = require('./utils/logger');
+const env = require('./config/env');
 const pool = require('./config/db');
+const logger = require('./utils/logger');
 
-const PORT = parseInt(process.env.PORT, 10) || 4000;
-
-const server = app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT} [${process.env.NODE_ENV}]`);
+const server = app.listen(env.port, () => {
+  logger.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`);
 });
 
 const gracefulShutdown = async (signal) => {
-  logger.info(`${signal} received. Shutting down gracefully...`);
+  logger.info(`${signal} received — shutting down gracefully`);
   server.close(async () => {
+    logger.info('HTTP server closed');
     await pool.end();
-    logger.info('Database pool closed. Server terminated.');
+    logger.info('Database pool closed');
     process.exit(0);
   });
-
   setTimeout(() => {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-process.on('unhandledRejection', (err) => {
-  logger.error('Unhandled Rejection:', err.message);
+process.on('unhandledRejection', (reason) => {
+  logger.error(`Unhandled Rejection: ${reason}`);
+  gracefulShutdown('unhandledRejection');
 });
 
 process.on('uncaughtException', (err) => {
-  logger.error('Uncaught Exception:', err.message);
+  logger.error(`Uncaught Exception: ${err.message}`);
   process.exit(1);
 });
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
