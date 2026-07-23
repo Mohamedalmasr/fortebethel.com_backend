@@ -1,17 +1,28 @@
 const { Pool } = require('pg');
+const env = require('./env');
+
+const hasAdminDbConfig = Boolean(
+  env.adminDb.host || env.adminDb.user || env.adminDb.password || env.adminDb.database,
+);
+
+const connectionConfig = env.databaseUrl
+  ? { connectionString: env.databaseUrl }
+  : hasAdminDbConfig
+    ? env.adminDb
+    : {};
 
 const pool = new Pool({
-  host: process.env.ADMIN_DB_HOST,
-  port: parseInt(process.env.ADMIN_DB_PORT, 10) || 5432,
-  user: process.env.ADMIN_DB_USER,
-  password: process.env.ADMIN_DB_PASSWORD,
-  database: process.env.ADMIN_DB_NAME,
-  max: 10,
+  ...connectionConfig,
+  max: env.nodeEnv === 'production' ? 20 : 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  ssl: env.nodeEnv === 'production'
+    ? { rejectUnauthorized: false, sslmode: 'require' }
+    : false,
 });
 
 pool.on('error', (err) => {
-  console.error('[DB] Unexpected error on idle client:', err.message);
-  process.exit(1);
+  console.error('Unexpected PG pool error:', err);
 });
 
 module.exports = pool;

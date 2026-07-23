@@ -3,9 +3,17 @@
   "version": "1.0.0",
   "description": "Contact Form API Backend - ONEklient System",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start:production": "pm2 start ecosystem.config.js --env production",
+    "dev": "nodemon src/server.js",
+    "test": "jest --verbose --forceExit --detectOpenHandles",
+    "test:load": "jest load.test.js --verbose --forceExit",
+    "logs": "pm2 logs fortebethel-api",
+    "status": "pm2 status"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +31,8 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

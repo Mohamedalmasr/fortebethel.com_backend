@@ -1,15 +1,15 @@
-const logger = require('../utils/logger');
-
-const errorHandler = (err, req, res, _next) => {
-  logger.error(err.message);
-  if (process.env.NODE_ENV === 'development') {
-    logger.error(err.stack);
+const errorHandler = (err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON in request body',
+    });
   }
 
+  console.error(`[ERROR] ${err.stack || err.message}`);
+
   const statusCode = err.statusCode || 500;
-  const message = process.env.NODE_ENV === 'production'
-    ? 'Internal server error'
-    : err.message;
+  const message = err.statusCode ? err.message : 'Internal server error';
 
   res.status(statusCode).json({
     success: false,
